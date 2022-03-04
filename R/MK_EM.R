@@ -4,23 +4,19 @@ MK_EM = function(sampleMat, cluster, lambda = 10, inits) {
   x = sampleMat
   n = nrow(x) # number of observations
   d = ncol(x) # number of dimensions
-
   tau = matrix(inits[[3]], cluster, 1) # initial cluster proportion
   mu = inits[[1]] # initial mean
   sigma = inits[[2]] # initial covariance
-
   T_mat = matrix(0,cluster,n) # probability of each point in each cluster
-  max_it = 200
+  max_it = 200 # Max iteration
 
-  for (l in unique(c(Inf, lambda^(5:1)))) { #unique
-    old_mu = mu
-
+  for (l in unique(c(Inf, lambda^(5:1)))) { # l: threshold for outliers
+    old_mu = mu # keep it for termination condition
     for (it in 1:max_it) {
-      old_T_mat = T_mat
+      old_T_mat = T_mat # keep it for termination condition
 
-      # E STEP: Construct the vector of the denom for T_mat for each i
+      # E STEP: Construct the the cuurent T_mat for each observation
       for (j in 1:cluster) {
-        #print(sigma[[j]])
         if (det(sigma[[j]]) < 1e-7) {
           sigma[[j]] = diag(d) * 1e-1
         }
@@ -60,11 +56,10 @@ MK_EM = function(sampleMat, cluster, lambda = 10, inits) {
           }
         }
 
-        # Only use those points with error 0 to calc to the covariance martix
+        # Only use those points with error 0 to calc to the covariance matrix
         if (length(indices) > 10){
           # Update mu
           mu[j,] = colSums(T_mat[j, indices]%*%(x[indices, ] - e[indices, ])) / sum(T_mat[j, indices])
-
           # Update sigma
           num = matrix(0,d,d)
           denom = sum(T_mat[j,indices])

@@ -57,25 +57,25 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
   max_it = 200
 
   for (l in unique(c(Inf, lambda ^ (5:1)))) {
-    #unique
     old_mu = mu
 
     for (it in 1:max_it) {
       old_T_mat = T_mat
 
-      # E STEP: Construct the vector of the denom for T_mat for each i
+      # E STEP: Construct the vector of the denom for T_mat for each observation i
       for (j in 1:cluster) {
         if (det(sigma[[j]]) < 1e-7) {
           sigma[[j]] = diag(d) * 1e-1
         }
+
+        # Cholesky decomposition to simplify the calculation
         L = chol(sigma[[j]], pivot = TRUE)
         y = solve(t(L), t(x - rep(mu[j,], each = n)))
         temp = abs(prod(diag(L)))
-        ## The d is lost in the original code.
         T_mat[j,] = log(tau[j]) - 0.5 * colSums(y ^ 2) - log(sqrt((2 * pi) ^
                                                                     d) * temp)
       }
-      ## This is weired. To normalize it, we don't need to pick maximum. Also it can be vectorized.
+      # Normalize the probability. Set a arbitrary cluster as the reference
       sc = T_mat[1,]
       dif = exp(sweep(T_mat,2,sc,'-'))
       T_mat = sweep(dif,2,colSums(dif),'/')
@@ -88,16 +88,21 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
         tau[j,] = (1 / n) * sum(T_mat[j,])
 
         x1 = x - rep(mu[j, ], each = n)
-        ## Use chol2inv instead
         sigma_inv = chol2inv(as.matrix(sigma[[j]]))
 
         x1_sigma_inv = x1 %*% sigma_inv
         A = matrix(rowSums(x1_sigma_inv * x1), n, 1)
 
         indices <- c()
-
-        indices <- which(A<l)
-        e[indices,]=x[indices, ] - mu[j, ]
+        for (i in 1:n) {
+          if (A[i,] < l) {
+            e[i,] = 0
+            indices <- c(indices, i)
+          }
+          else {
+            e[i,] = x[i,] - mu[j,]
+          }
+        }
 
         # Only use those points with error 0 to calc to the covariance martix
         if (length(indices) > 10) {
