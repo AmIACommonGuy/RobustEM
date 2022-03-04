@@ -31,7 +31,8 @@ sim_info <- simMultGauss(n = 120, d = 2, cluster = 6, out_perc = 0.03, out_mag =
 We can use function `robustEM` to cluster the points.
 
 ``` r
-result <- robustEM(sim_info[["simdata"]], cluster = 6)
+system.time(result <-  robustEM(sim_info[["simdata"]], cluster = 6, EM = MK_EM))
+system.time(result <- robustEM(sim_info[["simdata"]], cluster = 6))
 ```
 
 I have written a customized summary function to summarize the cluster

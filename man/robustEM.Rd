@@ -4,7 +4,7 @@
 \alias{robustEM}
 \title{Robust EM Algorithm}
 \usage{
-robustEM(datamat, cluster, lambda = 3)
+robustEM(datamat, cluster, lambda = 3, EM = EM_alg_GMM)
 }
 \arguments{
 \item{datamat}{The matrix of points to be clustered.}

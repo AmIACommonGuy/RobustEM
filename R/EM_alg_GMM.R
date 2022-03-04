@@ -96,10 +96,8 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
 
         indices <- c()
 
-        inl = A<l
-        e[inl,] = 0
-        indices <- inl
-        e[!inl,]=x[!inl, ] - mu[j, ]
+        indices <- which(A<l)
+        e[indices,]=x[indices, ] - mu[j, ]
 
         # Only use those points with error 0 to calc to the covariance martix
         if (length(indices) > 10) {

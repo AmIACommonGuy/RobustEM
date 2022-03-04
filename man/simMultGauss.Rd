@@ -2,7 +2,9 @@
 % Please edit documentation in R/data_simulator.R
 \name{simMultGauss}
 \alias{simMultGauss}
-\title{Simulate data points from several different gaussian distributions. The number
+\title{Simulate MVN clusters with outliers
+
+Simulate data points from several different gaussian distributions. The number
 of points from different distributions are the same.}
 \usage{
 simMultGauss(n, d, cluster, out_perc, out_mag, cov_scale = 1)
@@ -32,6 +34,8 @@ All the simulated data points(n*c rows, d columns)
 All the simulated outliers
 }
 \description{
+Simulate MVN clusters with outliers
+
 Simulate data points from several different gaussian distributions. The number
 of points from different distributions are the same.
 }
