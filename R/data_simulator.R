@@ -8,14 +8,13 @@
 #' Number of dimensions
 #'
 #' @param out_perc
-#' The proportion of outliers
+#' The percentage of outliers
 #'
 #' @param out_mag
 #' The magnitude of the outliers in terms of the covariance
 #'
 #' @param independent
-#' Whether covariances of points are zero. Default to be true.
-#'
+#' Whether the correlation of points are zero. Default to be true.
 #'
 #' @param cov_scale
 #' Constant parameter for setting the covariance of the non-outliers. Default to be 1.
@@ -29,6 +28,8 @@
 #'
 #' gauss - matrix of points
 #'
+#' outlier - matrix of outliers
+#'
 #' @export
 #' @importFrom MASS mvrnorm
 #' @importFrom stats runif
@@ -37,8 +38,8 @@
 #' simulation <- multivarGaussian(n = 200, d = 3, out_perc = 0.03, out_mag = 4)
 #'
 multivarGaussian = function(n, d, out_perc, out_mag, independent = TRUE, cov_scale = 1){
+  # Mean of the cluster
   mu = runif(d,1,50)
-
   if (independent){
     sigma = diag(runif(d, 1, 3))
   } else{
@@ -67,11 +68,12 @@ multivarGaussian = function(n, d, out_perc, out_mag, independent = TRUE, cov_sca
     gauss = rbind(gauss1, gauss2)
   }
 
-  mvGauss = list(mu = mu, sigma = sigma, gauss = gauss)
+  mvGauss = list(mu = mu, sigma = sigma, gauss = gauss, outlier = gauss2)
   return(mvGauss)
 }
 
-
+#' @title Simulate MVN clusters with outliers
+#'
 #' Simulate data points from several different gaussian distributions. The number
 #' of points from different distributions are the same.
 #'
@@ -103,6 +105,8 @@ multivarGaussian = function(n, d, out_perc, out_mag, independent = TRUE, cov_sca
 #'
 #' All the simulated data points(n*c rows, d columns)
 #'
+#' All the simulated outliers
+#'
 #' @export
 #'
 #'
@@ -112,11 +116,11 @@ multivarGaussian = function(n, d, out_perc, out_mag, independent = TRUE, cov_sca
 #'
 simMultGauss = function(n, d, cluster, out_perc, out_mag, cov_scale = 1){
   samples_simMultGauss = replicate(cluster, multivarGaussian(n = n, d = d,
-                                                       out_perc = out_perc, out_mag = out_mag, cov_scale))
+                                   out_perc = out_perc, out_mag = out_mag, cov_scale))
 
   sampleMu = do.call(rbind, samples_simMultGauss[1,])
   sampleSigma = lapply(samples_simMultGauss[2,], function(y) as.matrix(y))
   simSamp = do.call(rbind, samples_simMultGauss[3,])
-
-  return(list(mus = sampleMu, sigmas = sampleSigma, simdata = simSamp))
+  simOut = do.call(rbind, samples_simMultGauss[4,])
+  return(list(mus = sampleMu, sigmas = sampleSigma, simdata = simSamp, outliers= simOut))
 }

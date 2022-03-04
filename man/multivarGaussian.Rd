@@ -4,19 +4,18 @@
 \alias{multivarGaussian}
 \title{Simulate multivariate gaussian distribution with some outliers.}
 \usage{
-multivarGaussian(n, d, out_perc, out_mag, independent = TRUE,
-  cov_scale = 1)
+multivarGaussian(n, d, out_perc, out_mag, independent = TRUE, cov_scale = 1)
 }
 \arguments{
 \item{n}{Number of points}
 
 \item{d}{Number of dimensions}
 
-\item{out_perc}{The proportion of outliers}
+\item{out_perc}{The percentage of outliers}
 
 \item{out_mag}{The magnitude of the outliers in terms of the covariance}
 
-\item{independent}{Whether covariances of points are zero. Default to be true.}
+\item{independent}{Whether the correlation of points are zero. Default to be true.}
 
 \item{cov_scale}{Constant parameter for setting the covariance of the non-outliers. Default to be 1.}
 }
@@ -28,6 +27,8 @@ mu - mean vector
 sigma - covariance matrix
 
 gauss - matrix of points
+
+outlier - matrix of outliers
 }
 \description{
 Simulate multivariate gaussian distribution with some outliers.

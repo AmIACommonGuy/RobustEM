@@ -28,6 +28,8 @@ All the means of each cluster in a c*d matrix
 All the covariances of each cluster in a list of matrices(length c, each matrix d*d)
 
 All the simulated data points(n*c rows, d columns)
+
+All the simulated outliers
 }
 \description{
 Simulate data points from several different gaussian distributions. The number

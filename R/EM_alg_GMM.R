@@ -44,7 +44,6 @@
 #'
 #'
 EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
-
   ## Observations
   x = sampleMat
   n = nrow(x) # number of observations
@@ -54,10 +53,11 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
   mu = inits[[1]] # initial mean
   sigma = inits[[2]] # initial covariance
 
-  T_mat = matrix(0,cluster,n) # probability of each point in each cluster
+  T_mat = matrix(0, cluster, n) # probability of each point in each cluster
   max_it = 200
 
-  for (l in unique(c(Inf, lambda^(5:1)))) { #unique
+  for (l in unique(c(Inf, lambda ^ (5:1)))) {
+    #unique
     old_mu = mu
 
     for (it in 1:max_it) {
@@ -65,67 +65,74 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
 
       # E STEP: Construct the vector of the denom for T_mat for each i
       for (j in 1:cluster) {
-        #print(sigma[[j]])
         if (det(sigma[[j]]) < 1e-7) {
           sigma[[j]] = diag(d) * 1e-1
         }
         L = chol(sigma[[j]], pivot = TRUE)
-        y = solve(t(L), t(x - rep(mu[j,],each=n)))
-        T_mat[j,] = log(tau[j]) - 0.5 * colSums(y^2) - log(sqrt(2*pi)*abs(prod(diag(L)))) # last term needs to be cleared up
+        y = solve(t(L), t(x - rep(mu[j,], each = n)))
+        temp = abs(prod(diag(L)))
+        ## The d is lost in the original code.
+        T_mat[j,] = log(tau[j]) - 0.5 * colSums(y ^ 2) - log(sqrt((2 * pi) ^
+                                                                    d) * temp)
       }
-
-      for (i in 1:n) {
-        scale = max(T_mat[,i])
-        normalizer <- sum(exp(T_mat[,i] - scale))
-        T_mat[,i] = exp(T_mat[,i] - scale) / normalizer
-      }
+      ## This is weired. To normalize it, we don't need to pick maximum. Also it can be vectorized.
+      sc = T_mat[1,]
+      dif = exp(sweep(T_mat,2,sc,'-'))
+      T_mat = sweep(dif,2,colSums(dif),'/')
 
       # M STEP: Update tau, mu and sigma
 
       # Update tau
       for (j in 1:cluster) {
         e = matrix(0, n, d)
-        tau[j,] = (1/n)*sum(T_mat[j,])
+        tau[j,] = (1 / n) * sum(T_mat[j,])
 
         x1 = x - rep(mu[j, ], each = n)
-        sigma_inv = solve(as.matrix(sigma[[j]]))
+        ## Use chol2inv instead
+        sigma_inv = chol2inv(as.matrix(sigma[[j]]))
 
         x1_sigma_inv = x1 %*% sigma_inv
         A = matrix(rowSums(x1_sigma_inv * x1), n, 1)
 
         indices <- c()
 
-        for (i in 1:n) {
-          if (A[i,] < l) {
-            e[i,] = 0
-            indices <- c(indices, i)
-          }
-          else {
-            e[i,] = x[i,] - mu[j,]
-          }
-        }
+        inl = A<l
+        e[inl,] = 0
+        indices <- inl
+        e[!inl,]=x[!inl, ] - mu[j, ]
 
         # Only use those points with error 0 to calc to the covariance martix
-        if (length(indices) > 10){
+        if (length(indices) > 10) {
+          Tjind = T_mat[j, indices]
+          sT = sum(Tjind)
+          xind = x[indices, ]
+          eind = e[indices, ]
           # Update mu
-          mu[j,] = colSums(T_mat[j, indices]%*%(x[indices, ] - e[indices, ])) / sum(T_mat[j, indices])
+          mu[j,] = colSums(Tjind %*% (xind - eind)) / sT
 
           # Update sigma
-          num = matrix(0,d,d)
-          denom = sum(T_mat[j,indices])
-          x_prime = x[indices,]-e[indices,]-matrix(mu[j,], ncol=d, nrow=length(indices), byrow=T)
-          num = t(x_prime)%*%diag(T_mat[j,indices])%*%x_prime
-          sigma[[j]] = matrix(num/denom, d, d)
+          num = matrix(0, d, d)
+          denom = sT
+          x_prime = xind - eind - matrix(
+            mu[j,],
+            ncol = d,
+            nrow = length(indices),
+            byrow = T
+          )
+          num = t(x_prime) %*% diag(Tjind) %*% x_prime
+          sigma[[j]] = matrix(num / denom, d, d)
         }
 
-        if (sum(T_mat[j,]!=0) <= 3) {
+        if (sum(T_mat[j,] != 0) <= 3) {
           mu[j,] = matrix(0, 1, d)
           sigma[[j]] = diag(d) * 1e-2
         }
       }
-      if (max(abs(old_T_mat - T_mat)) < 1e-10) break
+      if (max(abs(old_T_mat - T_mat)) < 1e-10)
+        break
     }
-    if(max(abs(old_mu - mu)) < 1e-6) break
+    if (max(abs(old_mu - mu)) < 1e-6)
+      break
   }
 
   returnList = list(mu, sigma, T_mat, tau, cluster, d, n, x)
