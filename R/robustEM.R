@@ -36,12 +36,12 @@
 #' sim_info <- simMultGauss(n = 120, d = 2, cluster = 6, out_perc = 0.03, out_mag = 4)
 #' result <- robustEM(sim_info[["simdata"]], cluster = 6)
 #'
-robustEM <- function(datamat, cluster, lambda = 3, EM = EM_alg_GMM){
+robustEM <- function(datamat, cluster, lambda = 3, Robust = T){
   # first do hierarchical clustering
   initial_info <- initial_hier(datamat, cluster)
 
   # then do EM algorithm
-  result <- EM(datamat, cluster, lambda = lambda,  inits = initial_info)
+  result <- EM_alg_GMM(datamat, cluster, lambda = lambda,  inits = initial_info, Robust = Robust)
 
   class(result) <- "robustEM"
   return(result)

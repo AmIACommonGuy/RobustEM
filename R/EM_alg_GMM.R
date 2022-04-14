@@ -23,6 +23,8 @@
 #'
 #' proportion of clusters (a vector with c elements adding up to one)
 #'
+#' Robust: if set to false, standardard EM will be performed
+#'
 #'
 #' @return
 #' A list of results, include:
@@ -43,7 +45,7 @@
 #' @export
 #'
 #'
-EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
+EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits, Robust = T) {
   ## Observations
   x = sampleMat
   n = nrow(x) # number of observations
@@ -72,12 +74,11 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
         L = chol(sigma[[j]], pivot = TRUE)
         y = solve(t(L), t(x - rep(mu[j,], each = n)))
         temp = abs(prod(diag(L)))
-        T_mat[j,] = log(tau[j]) - 0.5 * colSums(y ^ 2) - log(sqrt((2 * pi) ^
-                                                                    d) * temp)
+        T_mat[j,] = log(tau[j]) - 0.5 * colSums(y ^ 2) - log(sqrt((2 * pi)^d) * temp)
       }
       # Normalize the probability. Set a arbitrary cluster as the reference
-      sc = T_mat[1,]
-      dif = exp(sweep(T_mat,2,sc,'-'))
+
+      dif = exp(T_mat-rep(1,cluster)%*%t(as.matrix(apply(T_mat,2,max))))
       T_mat = sweep(dif,2,colSums(dif),'/')
 
       # M STEP: Update tau, mu and sigma
@@ -91,19 +92,19 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
         sigma_inv = chol2inv(as.matrix(sigma[[j]]))
 
         x1_sigma_inv = x1 %*% sigma_inv
-        A = matrix(rowSums(x1_sigma_inv * x1), n, 1)
-
+        A = matrix(rowSums(x1_sigma_inv * x1),n,1)
         indices <- c()
-        for (i in 1:n) {
-          if (A[i,] < l) {
-            e[i,] = 0
-            indices <- c(indices, i)
-          }
-          else {
-            e[i,] = x[i,] - mu[j,]
+        if (Robust) {
+          for (i in 1:n) {
+            if (A[i,] < l) {
+              e[i,] = 0
+              indices <- c(indices, i)
+            }
+            else {
+              e[i,] = x[i,] - mu[j,]
+            }
           }
         }
-
         # Only use those points with error 0 to calc to the covariance martix
         if (length(indices) > 10) {
           Tjind = T_mat[j, indices]
@@ -137,8 +138,8 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits) {
     if (max(abs(old_mu - mu)) < 1e-6)
       break
   }
-
-  returnList = list(mu, sigma, T_mat, tau, cluster, d, n, x)
-  names(returnList) = c("mu", "sigma", "T_mat", "tau", "cluster", "d", "n", "raw")
+  label = apply(T_mat,2,which.max)
+  returnList = list(mu, sigma, T_mat, tau, cluster, d, n, x,label)
+  names(returnList) = c("mu", "sigma", "T_mat", "tau", "cluster", "d", "n", "raw","label")
   return(returnList)
 }
