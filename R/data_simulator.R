@@ -68,7 +68,7 @@ multivarGaussian = function(n, d, out_perc, out_mag, independent = TRUE, cov_sca
     gauss = rbind(gauss1, gauss2)
   }
 
-  mvGauss = list(mu = mu, sigma = sigma, gauss = gauss, outlier = gauss2)
+  mvGauss = list(mu = mu, sigma = sigma, gauss = gauss,outlier = gauss2, n_inlier, n_outlier)
   return(mvGauss)
 }
 
