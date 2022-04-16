@@ -13,11 +13,11 @@ library(dplyr)
 #source('multivarGaussSim.R')
 source('ClusterSimFunctions.R')
 
-num=10000
+num=10023
 set.seed(num)
 
 d = 2
-n = 100
+n = 50
 rand_k = NULL
 i=1
 num_sim = 50
@@ -64,15 +64,18 @@ for (i in 2:7) {
 
     result_rem = robustEM(sampleMat, c, Robust = T)
     result_standard = robustEM(sampleMat,c, Robust = F)
+    result_mclust = Mclust(sampleMat, verbose=F, G=c, modelNames = "VVV",
+                           initialization = list(hcPairs = hc(sampleMat)),
+                           control = emControl(tol=c(1.e-5, 1.e-6), itmax=15))
     true = as.numeric(sampleMat1$Cluster) ## The true label
-
     acc_rem = rand.index(true, result_rem$label)
     acc_std = rand.index(true, result_standard$label)
+    acc_mcl = rand.index(true, result_mclust$classification)
+    curr_stand = c(i, seed_num, "standard", acc_std)
+    curr_rob = c(i, seed_num, "robust", acc_rem)
+    curr_mclust = c(i, seed_num, "mclust", acc_mcl)
 
-    curr_stand = c(perc_out*100, seed_num, "standard", acc_std)
-    curr_rob = c(perc_out*100, seed_num, "robust", acc_rem)
-
-    rand_outliers = rbind(rand_outliers, curr_stand, curr_rob)
+    rand_outliers = rbind(rand_outliers, curr_stand, curr_rob,curr_mclust)
   }
 }
 # Make it a data frame

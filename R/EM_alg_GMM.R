@@ -1,4 +1,3 @@
-
 #' Robust EM Algorithm for Gaussian Mixture Models.
 #'
 #' Given the prespecified number of clusters,
@@ -142,4 +141,10 @@ EM_alg_GMM = function(sampleMat, cluster, lambda = 10, inits, Robust = T) {
   returnList = list(mu, sigma, T_mat, tau, cluster, d, n, x,label)
   names(returnList) = c("mu", "sigma", "T_mat", "tau", "cluster", "d", "n", "raw","label")
   return(returnList)
+
 }
+
+
+
+
+

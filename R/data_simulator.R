@@ -68,7 +68,7 @@ multivarGaussian = function(n, d, out_perc, out_mag, independent = TRUE, cov_sca
     gauss = rbind(gauss1, gauss2)
   }
 
-  mvGauss = list(mu = mu, sigma = sigma, gauss = gauss,outlier = gauss2, n_inlier, n_outlier)
+  mvGauss = list(mu = mu, sigma = sigma, gauss = gauss,outlier = gauss2, n_inlier = n_inlier)
   return(mvGauss)
 }
 
@@ -117,10 +117,18 @@ multivarGaussian = function(n, d, out_perc, out_mag, independent = TRUE, cov_sca
 simMultGauss = function(n, d, cluster, out_perc, out_mag, cov_scale = 1){
   samples_simMultGauss = replicate(cluster, multivarGaussian(n = n, d = d,
                                    out_perc = out_perc, out_mag = out_mag, cov_scale))
-
+  sample_inline = do.call(rbind, samples_simMultGauss[5,])
+  loop = 0
+  idx = c()
+  for (i in c(1:cluster)){
+    print(i)
+    temp = loop*n+c(1:sample_inline[i,])
+    idx=c(idx,temp)
+    loop = loop+1
+  }
   sampleMu = do.call(rbind, samples_simMultGauss[1,])
   sampleSigma = lapply(samples_simMultGauss[2,], function(y) as.matrix(y))
   simSamp = do.call(rbind, samples_simMultGauss[3,])
   simOut = do.call(rbind, samples_simMultGauss[4,])
-  return(list(mus = sampleMu, sigmas = sampleSigma, simdata = simSamp, outliers= simOut))
+  return(list(mus = sampleMu, sigmas = sampleSigma, simdata = simSamp, outliers= simOut, idx))
 }

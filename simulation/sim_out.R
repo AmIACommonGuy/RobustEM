@@ -12,15 +12,15 @@ library(fossil)
 library(dplyr)
 library(mclust)
 
-num = 77777
+num = 10000
 set.seed(num)
 
 ## parameters
-d = 5
+d = 4
 n = 150
 c = 3
 rand_outliers = NULL
-num_sim = 50
+num_sim = 40
 
 for (i in 1:5) { # for 1:5 we range from 5% to 25%
   # Let's do 50 different sets per k
@@ -41,6 +41,7 @@ for (i in 1:5) { # for 1:5 we range from 5% to 25%
 
     # Combine the c samples so that all samples are in one matrix
     sampleMat = samples[,1]$gauss
+
     if (c >1) {
       for (k in 2:c) {sampleMat = rbind(sampleMat, as.matrix(samples[,k]$gauss))}
     }
@@ -60,6 +61,10 @@ for (i in 1:5) { # for 1:5 we range from 5% to 25%
     result_mclust = Mclust(sampleMat, verbose=F, G=c, modelNames = "VVV",
                            initialization = list(hcPairs = hc(sampleMat)),
                            control = emControl(tol=c(1.e-5, 1.e-6), itmax=15))
+
+
+
+
     true = as.numeric(sampleMat1$Cluster) ## The true label
 
     acc_mcl = rand.index(true, result_mclust$classification)
@@ -93,7 +98,6 @@ ggplot(rand_outliers_mean, aes(x = Perc_outliers, y = mean, colour = Type_EM)) +
   geom_line(position = position_dodge(0.6), stat = "identity") +
   geom_point(position = position_dodge(0.6), size=2) +
   labs(y = "Rand Index", x = "Percent Outliers (%)", colour = "Type of EM\nalgorithm") +
-  #xlim(c(0,as.character(unique(rand_outliers_mean$Perc_outliers)))) +
   ggtitle("Clustering accuracy over percent outliers") +
   scale_color_brewer(palette="Dark2") +
   theme(plot.title = element_text(hjust = 0.5))

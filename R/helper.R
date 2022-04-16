@@ -44,8 +44,8 @@ plot.robustEM <- function(x, ...){
 
   final_plot <- ggplot() +
     geom_point(data = cluster_result, aes(x=Axis1, y=Axis2), size = 0.8, alpha = 0.5) +
-    geom_point(data = meanvec, aes(x=Axis1, y=Axis2), shape=23, size = 3, stroke = 2, color = 'red') +
-    covar_EM_plots
+    geom_point(data = meanvec, aes(x=Axis1, y=Axis2), shape=23, size = 3, stroke = 2, color = 'red')
+  +covar_EM_plots
 
   return(final_plot)
 }
